@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Поставщик — Заявки на поставку</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <a href="/warehouse">Склад</a>
+      <a href="/customer">Заказчик</a>
+    </div>
+    <div class="header-title">Поставщик</div>
+  </header>
+
+<div class="content" style="margin-top: 30px;">
+  <h2 style="text-align: center;">Заявки от склада</h2>
+    {% if supply_requests %}
+    <div class="form-card" style="margin: 20px auto; max-width: 1000px;">
+      <table style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background:#ecf0f1;">
+          <th style="padding:8px;">Товар</th>
+          <th style="padding:8px;">Кол-во</th>
+          <th style="padding:8px;">Мест</th>
+          <th style="padding:8px;">Срок</th>
+          <th style="padding:8px;">Цена/ед.</th>
+          <th style="padding:8px;">Сумма</th>
+          <th style="padding:8px;">Статус</th>
+          <th style="padding:8px;">Поставщик</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for req in supply_requests %}
+        <tr style="border-bottom:1px solid #d0d7de;">
+          <td style="padding:8px;">{{ req.item_name }}</td>
+          <td style="padding:8px;">{{ req.quantity }} {{ req.unit }}</td>
+          <td style="padding:8px;">{{ req.storage_units }}</td>
+          <td style="padding:8px;">{{ req.expiration_date or "—" }}</td>
+          <td style="padding:8px;">{{ "%.2f"|format(req.buy_price_per_unit) }} руб.</td>
+          <td style="padding:8px;">{{ "%.2f"|format(req.total) }} руб.</td>
+          <td style="padding:8px;">{{ req.status }}</td>
+          <td style="padding:8px;">
+            {% if req.status == 'новый' %}
+              <button class="fulfill-btn" data-index="{{ loop.index0 }}" style="background:#27ae60; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Выполнить</button>
+              <form method="post" action="/process_supply" style="display:inline;">
+                <input type="hidden" name="req_index" value="{{ loop.index0 }}">
+                <input type="hidden" name="action" value="отменить">
+                <button type="submit" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Отменить</button>
+              </form>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="text-align: center;">Нет заявок от склада.</p>
+    {% endif %}
+</div>
+
+<div id="fulfillModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h3>Выполнение поставки</h3>
+    <form method="post" action="/process_supply">
+      <input type="hidden" name="req_index" id="modalReqIndex">
+      <input type="hidden" name="action" value="выполнить">
+      <label>Название компании-поставщика</label>
+      <input name="supplier_company" placeholder="" required>
+      <button type="submit">Подтвердить</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('fulfillModal');
+  const closeBtn = document.querySelector('.close');
+  const fulfillBtns = document.querySelectorAll('.fulfill-btn');
+  const modalReqIndex = document.getElementById('modalReqIndex');
+
+fulfillBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    modalReqIndex.value = btn.dataset.index;
+    modal.style.display = 'block';
+    });
+  });
+
+closeBtn.addEventListener('click', () => {
+  modal.style.display = 'none';
+  });
+
+window.addEventListener('click', (e) => {
+  if (e.target === modal) modal.style.display = 'none';
+  });
+</script>
+</body>
+</html>

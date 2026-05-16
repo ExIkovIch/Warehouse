@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Заказчик — Оформление заказа</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <a href="/warehouse">Склад</a>
+      <a href="/supplier">Поставщик</a>
+    </div>
+    <div class="header-title">Заказчик</div>
+  </header>
+
+<div class="content" style="margin-top: 30px;">
+  <div style="text-align: center;">
+    <h2>Оформление заказа</h2>
+  </div>
+  {% if items %}
+  <div class="form-card" style="max-width: 600px; margin: 20px auto;">
+    <form method="post" id="orderForm">
+      <label>Название компании</label>
+      <input name="company" placeholder="" required>
+
+      <label>Товар</label>
+      <select name="item_name" id="itemSelect" required>
+        {% for it in items %}
+          <option value="{{ it.name }}" data-unit="{{ it.unit }}" data-price="{{ it.sell_price }}">
+            {{ it.name }} (доступно {{ it.available }} {{ it.unit }})
+          </option>
+        {% endfor %}
+      </select>
+
+      <label>Количество</label>
+      <input name="quantity" type="number" min="1" value="1" id="quantityInput" required>
+      <label>Единица измерения</label>
+      <input name="unit" id="unitDisplay" readonly>
+      <label>Цена за единицу (руб.)</label>
+      <input name="price_per_unit" type="number" step="0.01" min="0.01" id="priceInput" required>
+      <p style="margin-top: 15px; font-weight: bold;"> Общая стоимость: <span id="totalDisplay">0.00</span> руб.</p>
+      <button type="submit">📤 Оформить заказ</button>
+    </form>
+  </div>
+  {% else %}
+    <div class="error">На складе пока нет товаров.</div>
+  {% endif %}
+</div>
+
+<script>
+  const itemSelect = document.getElementById('itemSelect');
+  const unitDisplay = document.getElementById('unitDisplay');
+  const priceInput = document.getElementById('priceInput');
+  const quantityInput = document.getElementById('quantityInput');
+  const totalDisplay = document.getElementById('totalDisplay');
+
+  function updateForm() {
+    const selected = itemSelect.options[itemSelect.selectedIndex];
+    unitDisplay.value = selected.dataset.unit;
+    priceInput.value = parseFloat(selected.dataset.price).toFixed(2);
+    calculateTotal();
+    }
+
+  function calculateTotal() {
+    const qty = parseInt(quantityInput.value) || 0;
+    const price = parseFloat(priceInput.value) || 0;
+    totalDisplay.textContent = (qty * price).toFixed(2);
+    }
+
+  itemSelect.addEventListener('change', updateForm);
+  quantityInput.addEventListener('input', calculateTotal);
+  priceInput.addEventListener('input', calculateTotal);
+
+  updateForm();
+</script>
+</body>
+</html>

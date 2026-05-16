@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ wh.name }} — Панель склада</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+  <div class="header-left">
+    <a href="/supplier">Поставщик</a>
+    <a href="/customer">Заказчик</a>
+  </div>
+  <div class="header-title">Склад</div>
+  <div class="header-right">
+    <span class="badge">📅 {{ wh.current_date }}</span>
+    <span class="badge">💰 {{ "%.2f"|format(wh.balance) }} руб.</span>
+    <form method="post" action="/advance_day" style="margin:0;">
+      <button type="submit" class="advance-btn">⏩ Пропустить день</button>
+    </form>
+  </div>
+</header>
+  <div class="layout">
+    <nav class="sidebar">
+      <ul>
+        <li class="main-tab active" data-tab="stats">📊 Статистика</li>
+        <li class="main-tab" data-tab="storage">📦 Хранение</li>
+        <li class="main-tab" data-tab="orders">📋 Заказы</li>
+        <li class="main-tab" data-tab="supplies">🚚 Поставки</li>
+      </ul>
+    </nav>
+  <div class="content">
+    <div id="tab-stats" class="tab-content active">
+      <h2>Статистика</h2>
+      {% if advance_message %}
+        <div style="background:#ffeaa7; padding:10px; border-radius:8px; margin-bottom:20px;">
+          {{ advance_message }}
+        </div>
+      {% endif %}
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">💰 {{ "%.2f"|format(stats.balance) }} руб.</div>
+            <div class="stat-label">Баланс склада</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">📦 {{ stats.total_units }}</div>
+            <div class="stat-label">Всего товаров (шт.)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">🏷️ {{ stats.unique_items }}</div>
+            <div class="stat-label">Уникальных позиций</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">📊 {{ stats.fill_percent }}%</div>
+            <div class="stat-label">Относительная заполненность склада</div>
+          </div>
+        </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">📈 {{ "%.2f"|format(stats.total_sell_cost) }} руб.</div>
+          <div class="stat-label">Общая стоимость (продажа)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">📉 {{ "%.2f"|format(stats.total_buy_cost) }} руб.</div>
+          <div class="stat-label">Общая стоимость (закупка)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">✨ {{ "%.2f"|format(stats.expected_profit) }} руб.</div>
+          <div class="stat-label">Ожидаемая прибыль</div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">⚠️ {{ stats.expired_count }}</div>
+          <div class="stat-label">Просрочено (ед.)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">💸 {{ "%.2f"|format(stats.expired_loss) }} руб.</div>
+          <div class="stat-label">Убыток от просрочки</div>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 30px;">Заказы</h3>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">📋 {{ stats.orders_total }}</div>
+          <div class="stat-label">Всего заказов</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">✅ {{ stats.orders_done }}</div>
+          <div class="stat-label">Выполнено</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">❌ {{ stats.orders_canceled }}</div>
+          <div class="stat-label">Отменено</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">💵 {{ "%.2f"|format(stats.orders_income) }} руб.</div>
+          <div class="stat-label">Доход от заказов</div>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 30px;">Поставки</h3>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">🚚 {{ stats.supplies_total }}</div>
+          <div class="stat-label">Всего заявок</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">✅ {{ stats.supplies_done }}</div>
+          <div class="stat-label">Выполнено</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">❌ {{ stats.supplies_canceled }}</div>
+          <div class="stat-label">Отменено</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">💸 {{ "%.2f"|format(stats.supplies_expense) }} руб.</div>
+          <div class="stat-label">Расходы на поставки</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-storage" class="tab-content">
+      <input type="checkbox" id="buyModalToggle" class="modal-toggle">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h2 style="margin:0;">Хранение</h2>
+          <label for="buyModalToggle" class="open-modal-btn">
+          ➕ Купить полку (25 ₽/место)
+          </label>
+        </div>
+
+      <div class="sub-tabs">
+        <button class="sub-tab active" data-cat="common">Обычные</button>
+        <button class="sub-tab" data-cat="perishable">Скоропортящиеся</button>
+        <button class="sub-tab" data-cat="fragile">Хрупкие</button>
+        <button class="sub-tab" data-cat="oversize">Крупные</button>
+      </div>
+
+      <div id="shelves-container"></div>
+
+      <div id="buyShelfModal" class="modal">
+        <label for="buyModalToggle" class="modal-bg"></label>
+        <div class="modal-content form-card">
+          <label for="buyModalToggle" class="close">&times;</label>
+          <h3>Покупка новой полки</h3>
+          <form method="post" action="/buy_shelf">
+            <label>Название полки</label>
+            <input name="shelf_name" placeholder="Например: Стеллаж №3" required>
+
+            <label>Категория</label>
+            <select name="shelf_category" required>
+              <option value="common">Обычная</option>
+              <option value="perishable">Скоропортящиеся</option>
+              <option value="fragile">Хрупкие</option>
+              <option value="oversize">Крупногабарит</option>
+            </select>
+
+            <label>Вместимость (усл. мест)</label>
+            <input name="shelf_capacity" type="number" min="1" value="1000"
+                   oninput="document.getElementById('calcPrice').textContent = (this.value * 25).toLocaleString()">
+
+            <p style="margin-top: 8px; color: #2c3e50;">
+                Стоимость: <strong><span id="calcPrice">25 000</span> руб.</strong>
+            </p>
+            <button type="submit">💰 Купить полку</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-orders" class="tab-content">
+      <h2>Заказы</h2>
+      {% if orders %}
+        <table style="width:100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background:#ecf0f1;">
+              <th style="padding:8px; text-align:left;">Компания</th>
+              <th style="padding:8px; text-align:left;">Товар</th>
+              <th style="padding:8px; text-align:left;">Кол-во</th>
+              <th style="padding:8px; text-align:left;">Сумма</th>
+              <th style="padding:8px; text-align:left;">Статус</th>
+              <th style="padding:8px; text-align:left;">Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+              <tr style="border-bottom:1px solid #d0d7de;">
+                <td style="padding:8px;">{{ order.company }}</td>
+                <td style="padding:8px;">{{ order.item_name }}</td>
+                <td style="padding:8px;">{{ order.quantity }} {{ order.unit }}</td>
+                <td style="padding:8px;">{{ "%.2f"|format(order.total) }} руб.</td>
+                <td style="padding:8px;">{{ order.status }}</td>
+                <td style="padding:8px;">
+                  {% if order.status == 'новый' %}
+                    <form method="post" action="/process_order" style="display:inline;">
+                      <input type="hidden" name="order_index" value="{{ loop.index0 }}">
+                      <input type="hidden" name="action" value="выполнить">
+                      <button type="submit" style="background:#27ae60; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Выполнить</button>
+                    </form>
+                    <form method="post" action="/process_order" style="display:inline;">
+                      <input type="hidden" name="order_index" value="{{ loop.index0 }}">
+                      <input type="hidden" name="action" value="отменить">
+                      <button type="submit" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Отменить</button>
+                    </form>
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>Нет активных заказов.</p>
+      {% endif %}
+    </div>
+
+    <div id="tab-supplies" class="tab-content">
+      <h2>Поставки</h2>
+      <div class="form-card" style="max-width:600px; margin: 20px auto;">
+        <form method="post" action="/submit_supply_request">
+          <label>Товар</label>
+          <input name="item_name" placeholder="" required>
+
+          <label>Количество</label>
+          <input name="quantity" type="number" min="1" value="1" required>
+
+          <label>Единица измерения</label>
+          <select name="unit" required>
+            <option value="шт.">шт.</option>
+            <option value="кг">кг</option>
+            <option value="л">л</option>
+            <option value="уп.">уп.</option>
+            <option value="м">м</option>
+            <option value="м²">м²</option>
+            <option value="м³">м³</option>
+          </select>
+
+          <label>Тип товара</label>
+          <select name="item_type" id="supplyItemType" required>
+            <option value="common">Обычный</option>
+            <option value="perishable">Скоропортящийся</option>
+            <option value="fragile">Хрупкий</option>
+            <option value="oversize">Крупногабарит</option>
+          </select>
+
+          <label>Занимает мест (усл.)</label>
+          <input name="storage_units" type="number" min="1" value="1" required>
+
+          <div id="supplyExpiryBlock" style="display:none;">
+            <label>Срок годности (дата окончания)</label>
+            <input name="expiration_date" type="date"
+            value="{{ wh.current_date }}"
+            min="{{ wh.current_date }}">
+          </div>
+
+          <label>Цена закупки за единицу (руб.)</label>
+          <input name="buy_price" type="number" step="0.01" min="0.01" required>
+
+          <button type="submit">📝 Отправить заявку поставщикам</button>
+        </form>
+      </div>
+      <h3>Активные заявки</h3>
+      {% if supply_requests %}
+        <table style="width:100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background:#ecf0f1;">
+              <th style="padding:8px;">Товар</th>
+              <th style="padding:8px;">Кол-во</th>
+              <th style="padding:8px;">Мест</th>
+              <th style="padding:8px;">Срок</th>
+              <th style="padding:8px;">Цена/ед.</th>
+              <th style="padding:8px;">Сумма</th>
+              <th style="padding:8px;">Статус</th>
+              <th style="padding:8px;">Поставщик</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req in supply_requests %}
+              <tr style="border-bottom:1px solid #d0d7de;">
+                <td style="padding:8px;">{{ req.item_name }}</td>
+                <td style="padding:8px;">{{ req.quantity }} {{ req.unit }}</td>
+                <td style="padding:8px;">{{ req.storage_units }}</td>
+                <td style="padding:8px;">{{ req.expiration_date or "—" }}</td>
+                <td style="padding:8px;">{{ "%.2f"|format(req.buy_price_per_unit) }} руб.</td>
+                <td style="padding:8px;">{{ "%.2f"|format(req.total) }} руб.</td>
+                <td style="padding:8px;">{{ req.status }}</td>
+                <td style="padding:8px;">{{ req.supplier_company or "—" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>Нет активных заявок на поставку.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  const mainTabs = document.querySelectorAll('.main-tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  mainTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-tab');
+      mainTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      tabContents.forEach(c => c.classList.remove('active'));
+      document.getElementById('tab-' + target).classList.add('active');
+
+      if (target === 'storage') {
+        showShelves('common');
+        document.querySelectorAll('.sub-tab').forEach(s => s.classList.remove('active'));
+        document.querySelector('.sub-tab[data-cat="common"]').classList.add('active');
+      }
+    });
+  });
+
+  const subTabs = document.querySelectorAll('.sub-tab');
+  subTabs.forEach(sub => {
+    sub.addEventListener('click', () => {
+      const cat = sub.getAttribute('data-cat');
+      subTabs.forEach(s => s.classList.remove('active'));
+      sub.classList.add('active');
+      showShelves(cat);
+    });
+  });
+
+  function showShelves(category) {
+    const container = document.getElementById('shelves-container');
+    const allShelves = {{ shelves_json | safe }};
+    const filtered = allShelves.filter(sh => sh.category === category);
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<p style="color:#7f8c8d; margin-top:20px;">Нет полок в этой категории.</p>';
+      return;
+    }
+
+  let html = '<div class="shelves-grid">';
+
+  filtered.forEach(shelf => {
+    const fillPercent = shelf.capacity ? (shelf.used_units / shelf.capacity * 100) : 0;
+    html += `
+      <div class="shelf">
+        <h2>${escapeHtml(shelf.name)}</h2>
+        <div class="capacity-bar">
+          <div class="fill" style="width: ${fillPercent}%;"></div>
+        </div>
+        <p>📍 Занято: <strong>${shelf.used_units}</strong> / ${shelf.capacity} усл. мест</p>
+    `;
+
+    if (shelf.items.length > 0) {
+      html += '<ul>';
+      shelf.items.forEach(item => {
+        html += `
+          <li>
+            ${escapeHtml(item.name)} — ${item.qty} ${escapeHtml(item.unit)}
+            <span style="color:#7f8c8d;">(${item.storage_units} усл.ед.)</span>
+        `;
+        if (item.expiration_date) {
+          const statusText = item.is_expired ? 'ПРОСРОЧЕН' : 'Годен';
+          const statusColor = item.is_expired ? '#e74c3c' : '#27ae60';
+          html += `
+            <br><small style="color: ${statusColor};">
+              ${statusText} до ${item.expiration_date}
+            </small>
+          `;
+        }
+        html += '</li>';
+      });
+      html += '</ul>';
+    } else {
+      html += '<p style="color:#95a5a6; font-style:italic;">Пусто</p>';
+    }
+
+    html += '</div>';
+  });
+  html += '</div>';
+
+  container.innerHTML = html;
+  }
+
+  function escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+  }
+
+  const supplyTypeSelect = document.getElementById('supplyItemType');
+  const supplyExpiryBlock = document.getElementById('supplyExpiryBlock');
+  if (supplyTypeSelect && supplyExpiryBlock) {
+    supplyTypeSelect.addEventListener('change', function() {
+      supplyExpiryBlock.style.display = this.value === 'perishable' ? 'block' : 'none';
+    });
+  }
+
+</script>
+</body>
+</html>
