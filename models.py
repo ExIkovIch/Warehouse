@@ -139,7 +139,7 @@ class PerishableItem(BaseItem):
 class FragileItem(BaseItem):
     def __init__(self, name: str, buy_price: float, sell_price: float,
                  quantity: int, unit: str, storage_units: int):
-        super().__init__(name, buy_price, sell_price, quantity, unit, storage_units*2)
+        super().__init__(name, buy_price, sell_price, quantity, unit, int(storage_units*2))
 
     def to_dict(self):
         data = super().to_dict()
@@ -154,7 +154,7 @@ class FragileItem(BaseItem):
             sell_price=data['sell_price'],
             quantity=data['quantity'],
             unit=data['unit'],
-            storage_units=data['storage_units']
+            storage_units=data['storage_units'] / 2
         )
 
     def storage_category(self):
