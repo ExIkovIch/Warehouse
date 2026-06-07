@@ -89,7 +89,6 @@ def warehouse():
     orders = wh.get_orders()
     supply_requests = wh.get_supply_requests()
 
-    # Расчёт статистики
     total_buy_cost = 0.0
     total_sell_cost = 0.0
     total_units = 0
