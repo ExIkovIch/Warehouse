@@ -1,0 +1,210 @@
+{
+  "name": "Центральный склад",
+  "current_date": "2026-05-09",
+  "balance": 222300.0,
+  "shelves": [
+    {
+      "name": "Стеллаж №1",
+      "category": "common",
+      "capacity": 1000,
+      "items": {
+        "Гвозди": {
+          "item": {
+            "type": "common",
+            "name": "Гвозди",
+            "buy_price": 1000.0,
+            "sell_price": 1500.0,
+            "quantity": 60,
+            "unit": "кг",
+            "storage_units": 5
+          },
+          "quantity": 60
+        }
+      }
+    },
+    {
+      "name": "Стеллаж №2",
+      "category": "common",
+      "capacity": 1000,
+      "items": {}
+    },
+    {
+      "name": "Стеллаж №2",
+      "category": "common",
+      "capacity": 1000,
+      "items": {}
+    },
+    {
+      "name": "Холодильник №1",
+      "category": "perishable",
+      "capacity": 500,
+      "items": {}
+    },
+    {
+      "name": "Холодильник №2",
+      "category": "perishable",
+      "capacity": 500,
+      "items": {}
+    },
+    {
+      "name": "Холодильник №3",
+      "category": "perishable",
+      "capacity": 1000,
+      "items": {
+        "Молоко 3,2%": {
+          "item": {
+            "type": "perishable",
+            "name": "Молоко 3,2%",
+            "buy_price": 90.0,
+            "sell_price": 135.0,
+            "quantity": 30,
+            "unit": "л",
+            "storage_units": 1,
+            "expiration_date": "2026-05-09"
+          },
+          "quantity": 30
+        }
+      }
+    },
+    {
+      "name": "Стеллаж для хрупких товаров №1",
+      "category": "fragile",
+      "capacity": 500,
+      "items": {}
+    },
+    {
+      "name": "Стеллаж для хрупких товаров №2",
+      "category": "fragile",
+      "capacity": 500,
+      "items": {}
+    },
+    {
+      "name": "Стеллаж для хрупких товаров №3",
+      "category": "fragile",
+      "capacity": 500,
+      "items": {}
+    },
+    {
+      "name": "Стеллаж для хрупких товаров №4",
+      "category": "fragile",
+      "capacity": 500,
+      "items": {}
+    },
+    {
+      "name": "Стеллаж для хрупких товаров №5",
+      "category": "fragile",
+      "capacity": 500,
+      "items": {}
+    },
+    {
+      "name": "Крупный стеллаж №1",
+      "category": "oversize",
+      "capacity": 2500,
+      "items": {}
+    },
+    {
+      "name": "Крупный стеллаж №2",
+      "category": "oversize",
+      "capacity": 2500,
+      "items": {}
+    },
+    {
+      "name": "Ангар",
+      "category": "oversize",
+      "capacity": 50000,
+      "items": {
+        "Машина": {
+          "item": {
+            "type": "oversize",
+            "name": "Машина",
+            "buy_price": 750000.0,
+            "sell_price": 1125000.0,
+            "quantity": 1,
+            "unit": "шт.",
+            "storage_units": 20000
+          },
+          "quantity": 1
+        }
+      }
+    }
+  ],
+  "orders": [
+    {
+      "company": "СтеклоГрад",
+      "item_name": "Стеклянные колбы",
+      "unit": "уп.",
+      "quantity": 70,
+      "price_per_unit": 1500.0,
+      "total": 105000.0,
+      "status": "выполнен",
+      "created_at": "2026-06-07"
+    }
+  ],
+  "supply_requests": [
+    {
+      "item_name": "Гвозди",
+      "unit": "кг",
+      "quantity": 60,
+      "buy_price_per_unit": 1000.0,
+      "total": 60000.0,
+      "item_type": "common",
+      "storage_units": 5,
+      "expiration_date": null,
+      "status": "выполнен",
+      "created_at": "2026-06-07",
+      "supplier_company": "Металл"
+    },
+    {
+      "item_name": "Стеклянные колбы",
+      "unit": "уп.",
+      "quantity": 100,
+      "buy_price_per_unit": 500.0,
+      "total": 50000.0,
+      "item_type": "fragile",
+      "storage_units": 3,
+      "expiration_date": null,
+      "status": "отменён",
+      "created_at": "2026-06-07",
+      "supplier_company": ""
+    },
+    {
+      "item_name": "Молоко 3,2%",
+      "unit": "л",
+      "quantity": 30,
+      "buy_price_per_unit": 90.0,
+      "total": 2700.0,
+      "item_type": "perishable",
+      "storage_units": 1,
+      "expiration_date": "2026-05-09",
+      "status": "выполнен",
+      "created_at": "2026-06-07",
+      "supplier_company": "Молочная Продукция"
+    },
+    {
+      "item_name": "Машина",
+      "unit": "шт.",
+      "quantity": 1,
+      "buy_price_per_unit": 750000.0,
+      "total": 750000.0,
+      "item_type": "oversize",
+      "storage_units": 20000,
+      "expiration_date": null,
+      "status": "выполнен",
+      "created_at": "2026-06-07",
+      "supplier_company": "Уралвагонзавод"
+    },
+    {
+      "item_name": "Стеклянные колбы",
+      "unit": "уп.",
+      "quantity": 70,
+      "buy_price_per_unit": 1000.0,
+      "total": 70000.0,
+      "item_type": "fragile",
+      "storage_units": 3,
+      "expiration_date": null,
+      "status": "выполнен",
+      "created_at": "2026-06-07",
+      "supplier_company": "Стекольный Завод"
+    }
+  ]
+}

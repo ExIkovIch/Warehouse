@@ -93,8 +93,6 @@ def warehouse():
     total_buy_cost = 0.0
     total_sell_cost = 0.0
     total_units = 0
-    expired_count = 0
-    expired_loss = 0.0
 
     for shelf in wh.shelves:
         for item, qty in shelf.get_items().items():
@@ -134,8 +132,6 @@ def warehouse():
         'expected_profit': total_sell_cost - total_buy_cost,
         'total_units': total_units,
         'unique_items': unique_items,
-        'expired_count': expired_count,
-        'expired_loss': expired_loss,
         'fill_percent': round(fill_percent, 1),
         'orders_total': orders_total,
         'orders_done': orders_done,
