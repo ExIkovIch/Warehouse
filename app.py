@@ -29,7 +29,7 @@ else:
     wh = Warehouse("Центральный склад", balance=1000000)
     wh.add_shelf(Shelf("Стеллаж №1", "common", capacity=1000))
     wh.add_shelf(Shelf("Стеллаж №2", "common", capacity=1000))
-    wh.add_shelf(Shelf("Стеллаж №2", "common", capacity=1000))
+    wh.add_shelf(Shelf("Стеллаж №3", "common", capacity=1000))
     wh.add_shelf(Shelf("Холодильник №1", "perishable", capacity=500))
     wh.add_shelf(Shelf("Холодильник №2", "perishable", capacity=500))
     wh.add_shelf(Shelf("Холодильник №3", "perishable", capacity=1000))
@@ -98,9 +98,6 @@ def warehouse():
             total_buy_cost += item.buy_price * qty
             total_sell_cost += item.sell_price * qty
             total_units += qty
-            if isinstance(item, PerishableItem) and item.is_expired(wh.current_date):
-                expired_count += qty
-                expired_loss += item.buy_price * qty
 
     unique_items = len(wh.total_items())
     if wh.shelves:

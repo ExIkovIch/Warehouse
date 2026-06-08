@@ -323,7 +323,11 @@ class Shelf:
     def to_dict(self):
         items = {}
         for item, quantity in self._items.items():
-            items[item.name] = {
+            if isinstance(item, PerishableItem):
+                key = f"{item.name}|{item.expiration_date.isoformat()}"
+            else:
+                key = item.name
+            items[key] = {
                 'item': item.to_dict(),
                 'quantity': quantity
             }
@@ -341,7 +345,7 @@ class Shelf:
             category=data['category'],
             capacity=data['capacity']
         )
-        for name, entry in data.get('items', {}).items():
+        for key, entry in data.get('items', {}).items():
             item_data = entry['item']
             quantity = entry['quantity']
             item_type = item_data['type']
@@ -349,13 +353,16 @@ class Shelf:
                 item = CommonItem.from_dict(item_data)
             elif item_type == 'perishable':
                 item = PerishableItem.from_dict(item_data)
+                if '|' in key:
+                    _, date_str = key.split('|', 1)
+                    item.expiration_date = date.fromisoformat(date_str)
             elif item_type == 'fragile':
                 item = FragileItem.from_dict(item_data)
             elif item_type == 'oversize':
                 item = OversizeItem.from_dict(item_data)
             else:
                 raise ValueError(f"Неизвестный тип товара: {item_type}")
-            shelf._items[item] = quantity
+            shelf._items[item] = shelf._items.get(item, 0) + quantity
             shelf._used_units += item.storage_units * quantity
         return shelf
 
@@ -377,11 +384,21 @@ class Warehouse:
         self.shelves.append(shelf)
 
     def store_item(self, item: 'BaseItem', quantity: int = 1):
-        remaining = quantity
-
         suitable_shelves = [s for s in self.shelves if s.can_store(item, 1)]
-        suitable_shelves.sort(key=lambda s: s.free_units, reverse=True)
+        if not suitable_shelves:
+            return False
 
+        suitable_shelves.sort(key=lambda s: s.free_units, reverse=True)
+        total_possible = 0
+        for shelf in suitable_shelves:
+            total_possible += shelf.free_units // item.storage_units
+            if total_possible >= quantity:
+                break
+
+        if total_possible < quantity:
+            return False
+
+        remaining = quantity
         for shelf in suitable_shelves:
             if remaining <= 0:
                 break
@@ -391,7 +408,7 @@ class Warehouse:
                 shelf.add_item(item, take)
                 remaining -= take
 
-        return remaining == 0
+        return True
 
     def remove_item(self, item: 'BaseItem', quantity: int = 1):
         needed = quantity
@@ -467,7 +484,6 @@ class Warehouse:
 
     def add_order(self, order: Order):
         self.orders.append(order)
-        return len(self.orders) - 1
 
     def get_orders(self):
         return self.orders
@@ -477,6 +493,8 @@ class Warehouse:
             return False
         order = self.orders[order_index]
         if action == 'выполнить':
+            if order.status == 'отменён':
+                return False
             if order.status == 'выполнен':
                 return False
             target_item = None
@@ -502,7 +520,6 @@ class Warehouse:
 
     def add_supply_request(self, request):
         self.supply_requests.append(request)
-        return len(self.supply_requests) - 1
 
     def get_supply_requests(self):
         return self.supply_requests
@@ -513,6 +530,8 @@ class Warehouse:
         req = self.supply_requests[request_index]
 
         if action == 'выполнить':
+            if req.status == 'отменён':
+                return False
             if req.status == 'выполнен':
                 return False
             if not supplier_company:
@@ -533,7 +552,7 @@ class Warehouse:
                 )
             elif req.item_type == 'perishable':
                 if not exp_date:
-                    exp_date = date.today() + timedelta(days=7)
+                    exp_date = self.current_date + timedelta(days=7)
                 new_item = PerishableItem(
                     req.item_name, req.buy_price_per_unit, sell_price,
                     req.quantity, req.unit, storage_units=storage,
